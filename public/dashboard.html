@@ -13,6 +13,16 @@
   --card:#0D1F35;--card2:#112236;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
   --font-mono:'Space Mono',monospace;--font-body:'DM Sans',sans-serif;
 }
+body.light{
+  --navy:#F4F6FA;--navy2:#FFFFFF;--navy3:#EEF2F7;
+  --red:#C0282F;--amber:#B26B1F;--green:#1F8F84;--blue:#2E5F7C;--purple:#5E4585;
+  --white:#0A1628;--gray:#5A6776;--lightgray:#3D4853;
+  --card:#FFFFFF;--card2:#F4F6FA;--border:rgba(10,22,40,0.08);--border2:rgba(10,22,40,0.16);
+}
+body.light .alert-red{color:#8a1f26}
+body.light .alert-purple{color:#5e4585}
+.theme-toggle{background:transparent;border:1px solid var(--border2);color:var(--white);font-family:var(--font-mono);font-size:10px;letter-spacing:1px;padding:5px 10px;border-radius:2px;cursor:pointer}
+.theme-toggle:hover{background:var(--card2)}
 *{box-sizing:border-box;margin:0;padding:0}
 body{background:var(--navy);color:var(--white);font-family:var(--font-body);font-size:14px;min-height:100vh;line-height:1.5}
 a{color:inherit;text-decoration:none}
@@ -185,6 +195,7 @@ a{color:inherit;text-decoration:none}
     <div class="timer t-red">TechCrunch: Tue 6 PM</div>
     <div class="timer t-red">PR attack: Wed AM</div>
     <div class="timer t-amber">Volvo board: Thu 9 AM</div>
+    <button class="theme-toggle" onclick="toggleTheme()" id="themeBtn">☀ LIGHT</button>
   </div>
 </header>
 
@@ -550,6 +561,22 @@ function showTab(id, btn) {
   const d = document.getElementById('detail-box');
   if (d) d.classList.remove('show');
 }
+
+function toggleTheme(){
+  const light = document.body.classList.toggle('light');
+  const btn = document.getElementById('themeBtn');
+  if (btn) btn.textContent = light ? '🌙 DARK' : '☀ LIGHT';
+  try { localStorage.setItem('nexus-theme', light ? 'light' : 'dark'); } catch(e){}
+}
+(function(){
+  try {
+    if (localStorage.getItem('nexus-theme') === 'light') {
+      document.body.classList.add('light');
+      const btn = document.getElementById('themeBtn');
+      if (btn) btn.textContent = '🌙 DARK';
+    }
+  } catch(e){}
+})();
 
 function showSub(id, btn) {
   document.querySelectorAll('.sub-panel').forEach(p => p.classList.remove('active'));
