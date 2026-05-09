@@ -1,0 +1,579 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width, initial-scale=1.0"/>
+<title>NEXUS AI — Crisis Navigation Dashboard v6</title>
+<link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:ital,wght@0,300;0,400;0,500;0,600;1,400&display=swap" rel="stylesheet"/>
+<style>
+:root{
+  --navy:#0A1628;--navy2:#0D1F35;--navy3:#0F2A42;
+  --red:#E63946;--amber:#F4A261;--green:#2EC4B6;--blue:#457B9D;--purple:#7B5EA7;
+  --white:#F1FAEE;--gray:#8899AA;--lightgray:#AABBCC;
+  --card:#0D1F35;--card2:#112236;--border:rgba(255,255,255,0.07);--border2:rgba(255,255,255,0.12);
+  --font-mono:'Space Mono',monospace;--font-body:'DM Sans',sans-serif;
+}
+*{box-sizing:border-box;margin:0;padding:0}
+body{background:var(--navy);color:var(--white);font-family:var(--font-body);font-size:14px;min-height:100vh;line-height:1.5}
+a{color:inherit;text-decoration:none}
+
+/* ── HEADER ── */
+.header{background:var(--navy2);border-bottom:1px solid var(--border);padding:14px 28px;display:flex;align-items:center;justify-content:space-between;position:sticky;top:0;z-index:100;flex-wrap:wrap;gap:10px}
+.logo{font-family:var(--font-mono);font-size:17px;font-weight:700;letter-spacing:-0.5px;display:flex;align-items:center;gap:10px}
+.logo-dot{width:8px;height:8px;border-radius:50%;background:var(--red);animation:blink 1.5s infinite}
+@keyframes blink{0%,100%{opacity:1}50%{opacity:.3}}
+.crisis-pill{background:var(--red);color:#fff;font-family:var(--font-mono);font-size:9px;padding:3px 10px;border-radius:2px;letter-spacing:1.5px;animation:pulse 2s infinite}
+@keyframes pulse{0%,100%{opacity:1}50%{opacity:.7}}
+.timers{display:flex;gap:8px;flex-wrap:wrap}
+.timer{font-family:var(--font-mono);font-size:10px;padding:4px 10px;border-radius:2px;letter-spacing:.5px}
+.t-red{border:1px solid var(--red);color:var(--red)}
+.t-amber{border:1px solid var(--amber);color:var(--amber)}
+.t-blue{border:1px solid var(--blue);color:#90caf9}
+
+/* ── LAYOUT ── */
+.wrap{max-width:1280px;margin:0 auto;padding:22px 28px}
+
+/* ── ALERT BANNERS ── */
+.alert{border-radius:4px;padding:11px 14px;margin-bottom:8px;font-size:12px;line-height:1.6;display:flex;gap:10px;align-items:flex-start}
+.alert-red{background:rgba(230,57,70,.1);border:1px solid rgba(230,57,70,.35);color:#ffb3b8}
+.alert-purple{background:rgba(123,94,167,.1);border:1px solid rgba(123,94,167,.35);color:#ce93d8}
+.alert strong{color:var(--white)}
+
+/* ── METRICS GRID ── */
+.metrics{display:grid;grid-template-columns:repeat(8,1fr);gap:8px;margin-bottom:22px}
+.metric{background:var(--card);border:1px solid var(--border);border-radius:3px;padding:12px 10px;border-top:2px solid transparent;transition:border-top-color .2s}
+.metric.red{border-top-color:var(--red)}
+.metric.amber{border-top-color:var(--amber)}
+.metric.purple{border-top-color:var(--purple)}
+.metric-label{font-size:9px;color:var(--gray);margin-bottom:5px;letter-spacing:.6px;text-transform:uppercase;font-family:var(--font-mono)}
+.metric-value{font-family:var(--font-mono);font-size:17px;font-weight:700;line-height:1}
+.metric-value.red{color:var(--red)}
+.metric-value.amber{color:var(--amber)}
+.metric-value.purple{color:#ce93d8}
+.metric-sub{font-size:9px;color:var(--gray);margin-top:3px}
+
+/* ── TABS ── */
+.tabs{display:flex;gap:0;margin-bottom:18px;border-bottom:1px solid var(--border);overflow-x:auto}
+.tab{font-family:var(--font-mono);font-size:10px;padding:9px 14px;cursor:pointer;color:var(--gray);border:none;background:transparent;border-bottom:2px solid transparent;margin-bottom:-1px;letter-spacing:.6px;white-space:nowrap;transition:all .18s}
+.tab:hover{color:var(--white)}
+.tab.active{color:var(--white);border-bottom-color:var(--red)}
+
+/* ── PANELS ── */
+.panel{display:none}
+.panel.active{display:block}
+
+/* ── CARDS ── */
+.card{background:var(--card);border:1px solid var(--border);border-radius:4px;padding:16px;margin-bottom:12px}
+.card-title{font-family:var(--font-mono);font-size:9px;color:var(--gray);letter-spacing:.6px;margin-bottom:12px;text-transform:uppercase}
+
+/* ── BADGES ── */
+.badge{display:inline-block;font-size:9px;padding:2px 7px;border-radius:2px;font-weight:700;letter-spacing:.4px;font-family:var(--font-mono)}
+.b-red{background:rgba(230,57,70,.18);color:#ff8a8f;border:1px solid rgba(230,57,70,.35)}
+.b-amber{background:rgba(244,162,97,.12);color:var(--amber);border:1px solid rgba(244,162,97,.3)}
+.b-green{background:rgba(46,196,182,.12);color:var(--green);border:1px solid rgba(46,196,182,.3)}
+.b-blue{background:rgba(69,123,157,.18);color:#90caf9;border:1px solid rgba(69,123,157,.35)}
+.b-purple{background:rgba(123,94,167,.18);color:#ce93d8;border:1px solid rgba(123,94,167,.35)}
+.b-new{background:var(--red);color:#fff;font-size:8px;padding:2px 6px;border-radius:2px;margin-left:4px}
+
+/* ── THREAT MAP ── */
+.threat{display:flex;gap:12px;padding:12px 0;border-bottom:1px solid var(--border);align-items:flex-start}
+.threat:last-child{border-bottom:none}
+.threat-icon{width:34px;height:34px;border-radius:50%;display:flex;align-items:center;justify-content:center;flex-shrink:0;font-size:15px}
+.threat-body{flex:1;min-width:0}
+.threat-title{font-size:13px;font-weight:600;color:var(--white);margin-bottom:4px;display:flex;align-items:center;gap:6px;flex-wrap:wrap}
+.threat-desc{font-size:11.5px;color:var(--lightgray);line-height:1.5}
+
+/* ── BOARD PREP ── */
+.board-box{background:rgba(230,57,70,.07);border:1px solid rgba(230,57,70,.25);border-radius:4px;padding:16px;margin-bottom:12px}
+.board-title{font-family:var(--font-mono);font-size:10px;color:var(--red);letter-spacing:.6px;margin-bottom:12px;text-transform:uppercase}
+.board-q{display:flex;gap:12px;padding:10px 0;border-bottom:1px solid rgba(230,57,70,.15);align-items:flex-start}
+.board-q:last-child{border-bottom:none}
+.bq-label{font-family:var(--font-mono);font-size:10px;font-weight:700;min-width:85px;color:var(--red);padding-top:2px}
+.bq-answer{font-size:12px;color:rgba(241,250,238,.85);line-height:1.6}
+
+/* ── DECISION MATRIX ── */
+.matrix{width:100%;border-collapse:collapse;font-size:12px}
+.matrix th{background:rgba(255,255,255,.03);padding:9px 11px;text-align:left;font-family:var(--font-mono);font-size:9px;color:var(--gray);border-bottom:1px solid var(--border);letter-spacing:.5px}
+.matrix td{padding:12px 11px;border-bottom:1px solid var(--border);vertical-align:top;color:rgba(241,250,238,.8);line-height:1.5}
+.matrix tr:last-child td{border-bottom:none}
+.matrix tr.rec{background:rgba(69,123,157,.06)}
+.matrix tr.rec td:first-child{border-left:2px solid var(--green)}
+.opt-name{font-weight:600;font-size:13px;color:var(--white);margin-bottom:5px}
+.prob-bar{height:3px;border-radius:2px;margin-top:6px;background:rgba(255,255,255,.06)}
+.prob-fill{height:3px;border-radius:2px}
+
+/* ── GANTT ── */
+.gantt-wrap{overflow-x:auto;padding-bottom:4px}
+.gantt{min-width:660px}
+.gantt-head{display:grid;grid-template-columns:100px 1fr 1fr 1fr 1fr;gap:2px;margin-bottom:3px}
+.gantt-col{font-family:var(--font-mono);font-size:9px;color:var(--gray);text-align:center;padding:5px 4px;letter-spacing:.5px}
+.gantt-col:first-child{text-align:left}
+.gantt-row{display:grid;grid-template-columns:100px 1fr 1fr 1fr 1fr;gap:2px;margin-bottom:2px}
+.gantt-role{font-size:10px;font-weight:600;color:var(--white);padding:7px 5px;display:flex;align-items:center;font-family:var(--font-mono)}
+.gcell{border-radius:3px;padding:6px 8px;font-size:10px;line-height:1.35;cursor:pointer;transition:all .15s;min-height:38px;display:flex;align-items:center;border:1px solid transparent}
+.gcell:hover{filter:brightness(1.25);border-color:rgba(255,255,255,.12)}
+.gc-ceo{background:rgba(69,123,157,.22);color:#90caf9}
+.gc-cto{background:rgba(244,162,97,.14);color:var(--amber)}
+.gc-res{background:rgba(46,196,182,.13);color:var(--green)}
+.gc-cs{background:rgba(149,117,205,.14);color:#ce93d8}
+.gc-com{background:rgba(230,57,70,.13);color:#ff8a8f}
+.gc-leg{background:rgba(123,94,167,.14);color:#ce93d8}
+.gc-ir{background:rgba(136,153,170,.13);color:var(--lightgray)}
+.gc-urg{border-color:var(--red)!important;box-shadow:0 0 6px rgba(230,57,70,.25)}
+.detail{background:rgba(255,255,255,.03);border:1px solid var(--border);border-radius:4px;padding:14px;margin-top:10px;display:none}
+.detail.show{display:block}
+.detail-title{font-family:var(--font-mono);font-size:11px;color:var(--white);margin-bottom:8px}
+.detail-list{padding-left:18px;color:var(--lightgray);font-size:12px;line-height:1.9}
+
+/* ── COMMS PLAN ── */
+.comms-row{display:flex;gap:12px;padding:11px 0;border-bottom:1px solid var(--border);align-items:flex-start}
+.comms-row:last-child{border-bottom:none}
+.comms-who{font-weight:600;font-size:12px;min-width:110px;color:var(--white)}
+.comms-when{font-family:var(--font-mono);font-size:9px;color:var(--amber);min-width:70px;padding-top:2px;letter-spacing:.3px}
+.comms-msg{font-size:12px;color:var(--lightgray);line-height:1.5}
+
+/* ── SCRIPT TAB ── */
+.sub-tabs{display:flex;gap:4px;margin-bottom:14px;flex-wrap:wrap}
+.sub-tab{font-family:var(--font-mono);font-size:9px;padding:5px 11px;border-radius:2px;border:1px solid var(--border2);background:transparent;color:var(--gray);cursor:pointer;letter-spacing:.5px;transition:all .15s}
+.sub-tab.active{background:rgba(255,255,255,.07);color:var(--white);border-color:rgba(255,255,255,.2)}
+.sub-panel{display:none}
+.sub-panel.active{display:block}
+.script-block{border-left:3px solid var(--blue);padding:11px 14px;margin-bottom:8px;background:rgba(255,255,255,.025);border-radius:0 3px 3px 0}
+.script-block.green{border-left-color:var(--green)}
+.script-block.amber{border-left-color:var(--amber)}
+.script-block.red{border-left-color:var(--red)}
+.script-label{font-family:var(--font-mono);font-size:9px;color:var(--gray);margin-bottom:5px;letter-spacing:.5px}
+.script-text{font-size:13px;color:var(--white);line-height:1.75;font-style:italic}
+
+/* ── EMMA TAB ── */
+.email-wrap{background:rgba(255,255,255,.025);border:1px solid var(--border);border-radius:4px;padding:20px;font-size:13px;line-height:1.9;color:rgba(241,250,238,.85);margin-bottom:14px}
+.email-meta{font-size:10px;color:var(--gray);margin-bottom:14px;padding-bottom:10px;border-bottom:1px solid var(--border)}
+.email-meta span{color:var(--white);font-weight:600}
+.hl{background:rgba(69,123,157,.28);border-radius:2px;padding:1px 5px;color:#90caf9;font-style:normal}
+.why-row{border-left:2px solid var(--green);padding:8px 12px;margin-bottom:6px;background:rgba(46,196,182,.04);border-radius:0 3px 3px 0}
+.why-label{font-family:var(--font-mono);font-size:9px;color:var(--green);margin-bottom:3px;letter-spacing:.5px}
+.why-text{font-size:12px;color:var(--gray);line-height:1.5}
+
+/* ── INFO BARS ── */
+.bar{border-radius:3px;padding:10px 14px;margin-top:10px;font-size:12px;line-height:1.55;display:flex;gap:8px;align-items:flex-start}
+.bar-red{background:rgba(230,57,70,.08);border:1px solid rgba(230,57,70,.25);color:#ff8a8f}
+.bar-blue{background:rgba(69,123,157,.08);border:1px solid rgba(69,123,157,.25);color:#90caf9}
+.bar-green{background:rgba(46,196,182,.07);border:1px solid rgba(46,196,182,.2);color:var(--green)}
+.bar-amber{background:rgba(244,162,97,.07);border:1px solid rgba(244,162,97,.2);color:var(--amber)}
+.bar-purple{background:rgba(123,94,167,.08);border:1px solid rgba(123,94,167,.25);color:#ce93d8}
+.bar strong{color:var(--white)}
+
+/* ── ACTION BUTTON ── */
+.action-btn{display:inline-flex;align-items:center;gap:6px;margin-top:12px;padding:8px 16px;border:1px solid var(--border2);border-radius:3px;font-family:var(--font-mono);font-size:10px;color:var(--white);background:transparent;cursor:pointer;letter-spacing:.5px;transition:all .18s}
+.action-btn:hover{background:rgba(255,255,255,.06);border-color:rgba(255,255,255,.25)}
+
+/* ── RESPONSIVE ── */
+@media(max-width:1000px){.metrics{grid-template-columns:repeat(4,1fr)}}
+@media(max-width:700px){.metrics{grid-template-columns:repeat(2,1fr)}.wrap{padding:14px 16px}.header{padding:12px 16px}}
+</style>
+</head>
+<body>
+
+<!-- HEADER -->
+<header class="header">
+  <div style="display:flex;align-items:center;gap:12px">
+    <div class="logo">NEXUS<span style="color:var(--red)">.</span>AI <div class="logo-dot"></div></div>
+    <div class="crisis-pill">⚡ DEFCON 1</div>
+  </div>
+  <div class="timers">
+    <div class="timer t-red">Board call: 8 AM tomorrow</div>
+    <div class="timer t-red">TechCrunch: Tue 6 PM</div>
+    <div class="timer t-red">PR attack: Wed AM</div>
+    <div class="timer t-amber">Volvo board: Thu 9 AM</div>
+  </div>
+</header>
+
+<div class="wrap">
+
+  <!-- ALERT BANNERS -->
+  <div class="alert alert-red">⚡ <div><strong>Investor Michael furious — board call 8 AM tomorrow.</strong> He received Emma's TechCrunch email before Sofia called him. "Your leadership is on the line." Sofia must walk in with a complete plan or lose her job.</div></div>
+  <div class="alert alert-purple">🕵️ <div><strong>Internal betrayal confirmed.</strong> VP Sales identified as leak source — motivated by promotion revenge, in contact with CloudScale. Dr. Okonkwo interviewing at Vantage AI. Two key people may be working against NEXUS from inside.</div></div>
+
+  <!-- METRICS -->
+  <div class="metrics">
+    <div class="metric red"><div class="metric-label">Customers</div><div class="metric-value red">67%</div><div class="metric-sub">$40–60M losses</div></div>
+    <div class="metric red"><div class="metric-label">Pred. error</div><div class="metric-value red">31%</div><div class="metric-sub">SLA &lt;5% promised</div></div>
+    <div class="metric red"><div class="metric-label">Board call</div><div class="metric-value red">8 AM</div><div class="metric-sub">Leadership at risk</div></div>
+    <div class="metric red"><div class="metric-label">TechCrunch</div><div class="metric-value red">Tue 6PM</div><div class="metric-sub">Must respond NOW</div></div>
+    <div class="metric red"><div class="metric-label">PR attack</div><div class="metric-value red">Wed AM</div><div class="metric-sub">Coordinated w/ press</div></div>
+    <div class="metric amber"><div class="metric-label">Volvo board</div><div class="metric-value amber">Thu 9AM</div><div class="metric-sub">Tech meeting needed</div></div>
+    <div class="metric purple"><div class="metric-label">Leak source</div><div class="metric-value purple">VP Sales</div><div class="metric-sub">Revenge motive confirmed</div></div>
+    <div class="metric purple"><div class="metric-label">Okonkwo</div><div class="metric-value purple">At risk</div><div class="metric-sub">Interviewing Vantage AI</div></div>
+  </div>
+
+  <!-- TABS -->
+  <nav class="tabs">
+    <button class="tab active" onclick="showTab('threats',this)">THREAT MAP</button>
+    <button class="tab" onclick="showTab('board',this)">BOARD PREP</button>
+    <button class="tab" onclick="showTab('matrix',this)">DECISION MATRIX</button>
+    <button class="tab" onclick="showTab('protocol',this)">48-HR PROTOCOL</button>
+    <button class="tab" onclick="showTab('comms',this)">COMMS PLAN</button>
+    <button class="tab" onclick="showTab('script',this)">CEO SCRIPT</button>
+    <button class="tab" onclick="showTab('emma',this)">EMMA REPLY</button>
+  </nav>
+
+  <!-- ══ THREAT MAP ══ -->
+  <div id="panel-threats" class="panel active">
+    <div class="card">
+      <div class="threat">
+        <div class="threat-icon" style="background:rgba(230,57,70,.12)">🔴</div>
+        <div class="threat-body">
+          <div class="threat-title">Investor Michael — board call 8 AM <span class="badge b-red">DEFCON 1</span><span class="b-new">NEW</span></div>
+          <div class="threat-desc">Got Emma's email before Sofia called him. Furious. Wants 3 answers: scope, plan, why press first. "Your leadership is on the line." Sofia must walk in with a complete plan or lose her job.</div>
+        </div>
+      </div>
+      <div class="threat">
+        <div class="threat-icon" style="background:rgba(123,94,167,.12)">🕵️</div>
+        <div class="threat-body">
+          <div class="threat-title">VP Sales — confirmed leak, talking to CloudScale <span class="badge b-purple">INTERNAL BETRAYAL</span><span class="b-new">NEW</span></div>
+          <div class="threat-desc">Passed over for promotion last month. Feeding internal metrics and documents to TechCrunch and CloudScale for weeks. May be actively helping the Wednesday competitor attack. Check customer impact dashboard access logs to verify.</div>
+        </div>
+      </div>
+      <div class="threat">
+        <div class="threat-icon" style="background:rgba(123,94,167,.12)">🚪</div>
+        <div class="threat-body">
+          <div class="threat-title">Dr. Okonkwo — interviewing at Vantage AI <span class="badge b-purple">CRITICAL RISK</span><span class="b-new">NEW</span></div>
+          <div class="threat-desc">Head of AI Research is interviewing at the competitor behind the Wednesday PR attack. She knows everything about the drift issue. If she leaves before the retrain completes, the entire 3-week fix plan collapses. Must retain her tonight.</div>
+        </div>
+      </div>
+      <div class="threat">
+        <div class="threat-icon" style="background:rgba(230,57,70,.12)">📰</div>
+        <div class="threat-body">
+          <div class="threat-title">TechCrunch — Emma publishing Wednesday AM <span class="badge b-red">URGENT</span></div>
+          <div class="threat-desc">Journalist knows model drift, financials, and Volvo. Publishing same time as competitor attack. Coordinated campaign. Deadline Tuesday 6 PM. Investor already received the same email — confirms external coordination.</div>
+        </div>
+      </div>
+      <div class="threat">
+        <div class="threat-icon" style="background:rgba(230,57,70,.12)">⚙️</div>
+        <div class="threat-body">
+          <div class="threat-title">Engineering revolt — Maya's public Slack <span class="badge b-red">LEAK SOURCE</span></div>
+          <div class="threat-desc">5+ engineers threatening to quit if cosmetic patch deployed. Public #engineering post confirmed as leak source. VP Sales likely supplemented this with internal documents. Must lock channels and address Maya immediately.</div>
+        </div>
+      </div>
+      <div class="threat">
+        <div class="threat-icon" style="background:rgba(230,57,70,.12)">🏢</div>
+        <div class="threat-body">
+          <div class="threat-title">Volvo found the problem themselves <span class="badge b-red">48 HRS</span></div>
+          <div class="threat-desc">Per Andersson emailed Sofia. Found errors in dev environment testing. Board Thursday 9 AM. Requesting technical deep-dive. Must call after board call — but board prep takes priority over this now.</div>
+        </div>
+      </div>
+      <div class="threat">
+        <div class="threat-icon" style="background:rgba(230,57,70,.12)">🤖</div>
+        <div class="threat-body">
+          <div class="threat-title">Model drift — 67%, $40–60M, SOC 2 risk <span class="badge b-red">CRITICAL</span></div>
+          <div class="threat-desc">4 months contamination from vendor acquisition. 31% error vs SLA 5%. Option B patch legally eliminated — SOC 2 violation. Fix: 3-week retrain + 1-week validation. Entire plan depends on Dr. Okonkwo staying.</div>
+        </div>
+      </div>
+      <div class="threat">
+        <div class="threat-icon" style="background:rgba(244,162,97,.12)">📢</div>
+        <div class="threat-body">
+          <div class="threat-title">Competitor PR attack — CloudScale + Vantage AI <span class="badge b-amber">WED AM</span></div>
+          <div class="threat-desc">Joint press release with 3 analysts. VP Sales may be actively helping. Dr. Okonkwo's departure would give Vantage AI full technical knowledge of the drift issue. Must publish proactively before Wednesday.</div>
+        </div>
+      </div>
+    </div>
+    <div class="bar bar-red">🎯 <div><strong>New priority order:</strong> (1) Secure Dr. Okonkwo tonight — without her the fix is impossible. (2) Quietly pull VP Sales access logs. (3) Prepare board presentation for Michael 8 AM. (4) Send Emma reply by Tue 6 PM. (5) Call Volvo. (6) Publish blog before Wed AM.</div></div>
+  </div>
+
+  <!-- ══ BOARD PREP ══ -->
+  <div id="panel-board" class="panel">
+    <p style="font-size:12px;color:var(--gray);margin-bottom:14px">Michael's 3 questions — Sofia must answer all 3 perfectly at 8 AM tomorrow. Here are the exact answers.</p>
+
+    <div class="board-box">
+      <div class="board-title">Michael's 3 questions — Sofia's exact answers</div>
+      <div class="board-q">
+        <div class="bq-label">Q1 — Scope</div>
+        <div class="bq-answer">"67% of our enterprise customers are affected by a model drift issue we identified through our own internal monitoring. Our Head of AI Research traced it to training data contamination from a vendor acquisition 6 months ago. Customer financial impact is estimated at $40–60M in misallocated cloud resources since September."</div>
+      </div>
+      <div class="board-q">
+        <div class="bq-label">Q2 — Plan</div>
+        <div class="bq-answer">"We have deployed a stabilising guardrail. The 48-hr patch is legally off the table due to SOC 2 constraints. We have initiated a 3-week model retrain with 1-week validation — the only real fix. All affected customers have been notified directly. We are publishing a proactive AI Reliability statement before Wednesday's competitor press release."</div>
+      </div>
+      <div class="board-q">
+        <div class="bq-label">Q3 — Why press first?</div>
+        <div class="bq-answer">"I owe you a direct answer: I should have called you the moment we identified the full scope. I did not, and that was wrong. I was focused on having a plan before communicating — but I failed to sequence that correctly with you. That will not happen again."</div>
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="card-title">What Sofia must bring to the 8 AM board call</div>
+      <div class="comms-row"><div class="comms-who">This dashboard</div><div class="comms-when">Walk in with</div><div class="comms-msg">Show Michael the complete crisis navigation plan. Threat map, decision matrix, 48-hour Gantt. This shows surgical precision — exactly what he asked for.</div></div>
+      <div class="comms-row"><div class="comms-who">Leak investigation</div><div class="comms-when">Confidential</div><div class="comms-msg">Inform Michael privately that the leak source has been identified. Say "our access log investigation identified unusual activity" — not "anonymous tip." Verify logs first before the call.</div></div>
+      <div class="comms-row"><div class="comms-who">Dr. Okonkwo</div><div class="comms-when">Critical</div><div class="comms-msg">Tell Michael Dr. Okonkwo has been personally retained by Sofia. Do not mention the Vantage AI interview unless Michael already knows. Show the retrain plan is in safe hands.</div></div>
+      <div class="comms-row"><div class="comms-who">Emma response</div><div class="comms-when">Show him</div><div class="comms-msg">Show Michael the exact email Sofia sent to Emma. He needs to see NEXUS is controlling the narrative, not running from it.</div></div>
+      <div class="comms-row"><div class="comms-who">Volvo status</div><div class="comms-when">Update</div><div class="comms-msg">Confirm Sofia has spoken to Per Andersson personally. Volvo is prepared for Thursday's board meeting. Largest customer is retained.</div></div>
+    </div>
+
+    <div class="bar bar-amber">⚠️ <div><strong>Do NOT say in the board call:</strong> The anonymous tip source. Specific VP Sales name until access logs are verified. Dr. Okonkwo's Vantage AI interview — this could panic the board if she has already decided to stay.</div></div>
+    <button class="action-btn" onclick="alert('Suggested prompt: What if Michael asks Sofia to step down as CEO during the board call?')">What if Michael asks Sofia to step down? ↗</button>
+  </div>
+
+  <!-- ══ DECISION MATRIX ══ -->
+  <div id="panel-matrix" class="panel">
+    <div class="card" style="padding:0;overflow:hidden">
+      <table class="matrix">
+        <thead>
+          <tr><th>Option</th><th>Time</th><th>Short-term risk</th><th>Long-term trust</th><th>Outcome probability</th></tr>
+        </thead>
+        <tbody>
+          <tr>
+            <td><div class="opt-name">A — Full transparency + offline</div><span class="badge b-amber">HIGH DISRUPTION</span></td>
+            <td style="color:var(--gray)">0–24 hrs<br><small>(shutdown)</small></td>
+            <td style="color:#ff8a8f">Revenue loss. Volvo board collapses. Emma gets full story confirmed.</td>
+            <td><span class="badge b-green">HIGH RECOVERY</span></td>
+            <td><strong style="color:var(--green)">70%</strong> trust · <strong style="color:var(--red)">30%</strong> hit<div class="prob-bar"><div class="prob-fill" style="width:70%;background:var(--green)"></div></div></td>
+          </tr>
+          <tr>
+            <td><div class="opt-name" style="text-decoration:line-through;opacity:.45">B — 48-hr patch (silent)</div><span class="badge b-red">ELIMINATED</span></td>
+            <td style="color:var(--gray);opacity:.4">—</td>
+            <td style="color:#ff8a8f">SOC 2 violation. Engineers quit. Legally impossible. Would destroy remaining trust.</td>
+            <td><span class="badge b-red">ELIMINATED</span></td>
+            <td><strong style="color:var(--red)">0%</strong> — illegal<div class="prob-bar"><div class="prob-fill" style="width:0%"></div></div><small style="color:var(--red)">Cannot be deployed</small></td>
+          </tr>
+          <tr class="rec">
+            <td><div class="opt-name">C — Hybrid containment</div><span class="badge b-blue">RECOMMENDED ✓</span></td>
+            <td style="color:var(--gray)">0–48 hrs</td>
+            <td style="color:var(--amber)">Operational complexity. Needs Dr. Okonkwo secured AND VP Sales contained before board call.</td>
+            <td><span class="badge b-green">HIGH IF EXECUTED</span></td>
+            <td><strong style="color:var(--green)">80%</strong> controlled · <strong style="color:var(--amber)">20%</strong> hit<div class="prob-bar"><div class="prob-fill" style="width:80%;background:var(--blue)"></div></div></td>
+          </tr>
+        </tbody>
+      </table>
+    </div>
+    <div class="bar bar-red" style="margin-top:10px">⚠️ Option C success now depends on 2 new conditions: <strong>Dr. Okonkwo stays</strong> AND <strong>VP Sales is quietly contained</strong> before the 8 AM board call. Both must happen tonight.</div>
+  </div>
+
+  <!-- ══ 48-HR PROTOCOL ══ -->
+  <div id="panel-protocol" class="panel">
+    <div class="card">
+      <p style="font-size:11px;color:var(--gray);margin-bottom:12px">Click any cell for detailed actions. Red glow = most urgent right now. Two new rows added: Legal/HR and updated CEO priority.</p>
+      <div class="gantt-wrap">
+        <div class="gantt">
+          <div class="gantt-head">
+            <div class="gantt-col">Role</div>
+            <div class="gantt-col" style="color:var(--red)">Hour 0–6 🔴</div>
+            <div class="gantt-col">Hour 6–18</div>
+            <div class="gantt-col">Hour 18–36</div>
+            <div class="gantt-col">Hour 36–48</div>
+          </div>
+          <div class="gantt-row">
+            <div class="gantt-role">CEO</div>
+            <div class="gcell gc-ceo gc-urg" onclick="showDetail('ceo-0')">Secure Okonkwo + prep board</div>
+            <div class="gcell gc-ceo gc-urg" onclick="showDetail('ceo-1')">Board call 8AM + Emma reply</div>
+            <div class="gcell gc-ceo" onclick="showDetail('ceo-2')">Call Volvo + approve blog</div>
+            <div class="gcell gc-ceo" onclick="showDetail('ceo-3')">Volvo board support Thu</div>
+          </div>
+          <div class="gantt-row">
+            <div class="gantt-role">CTO</div>
+            <div class="gcell gc-cto gc-urg" onclick="showDetail('cto-0')">Address Maya + pull VP Sales logs</div>
+            <div class="gcell gc-cto" onclick="showDetail('cto-1')">Lock Slack + deploy guardrail</div>
+            <div class="gcell gc-cto" onclick="showDetail('cto-2')">Lead Volvo tech deep-dive</div>
+            <div class="gcell gc-cto" onclick="showDetail('cto-3')">Launch retrain pipeline</div>
+          </div>
+          <div class="gantt-row">
+            <div class="gantt-role">Research</div>
+            <div class="gcell gc-res gc-urg" onclick="showDetail('res-0')">Okonkwo retention meeting NOW</div>
+            <div class="gcell gc-res" onclick="showDetail('res-1')">Freeze deploys + Volvo brief</div>
+            <div class="gcell gc-res" onclick="showDetail('res-2')">Present in Volvo deep-dive</div>
+            <div class="gcell gc-res" onclick="showDetail('res-3')">Begin retrain pipeline</div>
+          </div>
+          <div class="gantt-row">
+            <div class="gantt-role">Cust. Success</div>
+            <div class="gcell gc-cs gc-urg" onclick="showDetail('cs-0')">Map all 67% affected</div>
+            <div class="gcell gc-cs" onclick="showDetail('cs-1')">NDA calls — top 10</div>
+            <div class="gcell gc-cs" onclick="showDetail('cs-2')">Volvo board prep</div>
+            <div class="gcell gc-cs" onclick="showDetail('cs-3')">All-customer update</div>
+          </div>
+          <div class="gantt-row">
+            <div class="gantt-role">Comms</div>
+            <div class="gcell gc-com gc-urg" onclick="showDetail('com-0')">Lock Slack + draft Emma reply</div>
+            <div class="gcell gc-com gc-urg" onclick="showDetail('com-1')">Send Emma by Tue 6PM</div>
+            <div class="gcell gc-com" onclick="showDetail('com-2')">Counter-narrative activated</div>
+            <div class="gcell gc-com" onclick="showDetail('com-3')">AI Reliability blog live</div>
+          </div>
+          <div class="gantt-row">
+            <div class="gantt-role">Legal / HR</div>
+            <div class="gcell gc-leg gc-urg" onclick="showDetail('hr-0')">Pull VP Sales access logs quietly</div>
+            <div class="gcell gc-leg gc-urg" onclick="showDetail('hr-1')">Verify leak — prepare evidence</div>
+            <div class="gcell gc-leg" onclick="showDetail('hr-2')">Brief board on leak finding</div>
+            <div class="gcell gc-leg" onclick="showDetail('hr-3')">Take action on VP Sales</div>
+          </div>
+          <div class="gantt-row">
+            <div class="gantt-role">Investor Rel.</div>
+            <div class="gcell gc-ir gc-urg" onclick="showDetail('ir-0')">Prepare board deck NOW</div>
+            <div class="gcell gc-ir gc-urg" onclick="showDetail('ir-1')">Board call 8AM with Michael</div>
+            <div class="gcell gc-ir" onclick="showDetail('ir-2')">Post-call investor update</div>
+            <div class="gcell gc-ir" onclick="showDetail('ir-3')">30-day rebuild plan shared</div>
+          </div>
+        </div>
+      </div>
+      <div id="detail-box" class="detail">
+        <div class="detail-title" id="detail-title"></div>
+        <ul class="detail-list" id="detail-list"></ul>
+      </div>
+    </div>
+    <div class="bar bar-amber">⚠️ <strong>New critical sequence:</strong> Secure Okonkwo tonight → Pull VP Sales logs → Board call 8AM → Emma reply → Volvo call. This replaces all previous sequences.</div>
+  </div>
+
+  <!-- ══ COMMS PLAN ══ -->
+  <div id="panel-comms" class="panel">
+    <div class="card">
+      <div class="comms-row"><div class="comms-who" style="color:var(--green)">Dr. Okonkwo</div><div class="comms-when" style="color:var(--red)">TONIGHT</div><div class="comms-msg">Sofia calls personally tonight before the board call. Offer retention package, expanded role, recognition of integrity in refusing the patch. She must commit to leading the retrain before 8 AM. This is the most important call Sofia makes.</div></div>
+      <div class="comms-row"><div class="comms-who">Legal / HR</div><div class="comms-when">Hour 0–2</div><div class="comms-msg">Quietly pull VP Sales access logs for customer impact dashboard. Do NOT confront him yet. Verify the anonymous tip before taking action. Preserve all evidence for board and potential legal proceedings.</div></div>
+      <div class="comms-row"><div class="comms-who">Engineering team</div><div class="comms-when">Hour 0–2</div><div class="comms-msg">CTO addresses Maya privately. Confirm Option B is dead. Secure retrain commitment. Lock public Slack channels immediately — confirmed leak source.</div></div>
+      <div class="comms-row"><div class="comms-who" style="color:var(--red)">Board — Michael</div><div class="comms-when" style="color:var(--red)">8 AM tomorrow</div><div class="comms-msg">Sofia presents complete crisis plan using this dashboard. Answers Michael's 3 questions directly and without hesitation. Shows Emma response sent, Volvo called, engineering secured, retrain plan in place. Addresses leak finding confidentially at the end.</div></div>
+      <div class="comms-row"><div class="comms-who" style="color:var(--red)">Emma — TechCrunch</div><div class="comms-when">By Tue 6PM</div><div class="comms-msg">Send controlled response. Acknowledge issue without confirming 67% or $40-60M. Do not confirm Volvo. Reframe as integrity story. Offer a call. Must go before board call if possible.</div></div>
+      <div class="comms-row"><div class="comms-who">Volvo — Per</div><div class="comms-when">After board call</div><div class="comms-msg">Sofia calls after board call using updated 4-sentence script. Warn about press coverage. Schedule technical deep-dive. Confirm dedicated engineering pod through Thursday board.</div></div>
+      <div class="comms-row"><div class="comms-who">Top 10 customers</div><div class="comms-when">Hour 6–18</div><div class="comms-msg">Lars leads NDA disclosure calls before Wednesday AM. Every customer hears from NEXUS before reading TechCrunch or the competitor press release. Acknowledge losses honestly.</div></div>
+      <div class="comms-row"><div class="comms-who">All 190 staff</div><div class="comms-when">Hour 20</div><div class="comms-msg">Sofia all-hands after VP Sales situation is legally verified. One spokesperson rule. Recognise engineering team integrity publicly. Do not mention VP Sales until action is confirmed.</div></div>
+      <div class="comms-row"><div class="comms-who">Public blog</div><div class="comms-when">Hour 30–36</div><div class="comms-msg">Publish "AI Reliability Initiative" before Wednesday AM. Lead with: our engineers refused to cut corners. Get the NEXUS version of the story out before competitors do.</div></div>
+    </div>
+  </div>
+
+  <!-- ══ CEO SCRIPT ══ -->
+  <div id="panel-script" class="panel">
+    <div class="sub-tabs">
+      <button class="sub-tab active" onclick="showSub('s-eng',this)">Part 1 — Engineering</button>
+      <button class="sub-tab" onclick="showSub('s-okonkwo',this)">Part 2 — Okonkwo</button>
+      <button class="sub-tab" onclick="showSub('s-board',this)">Part 3 — Board call</button>
+      <button class="sub-tab" onclick="showSub('s-volvo',this)">Part 4 — Volvo</button>
+    </div>
+
+    <div id="s-eng" class="sub-panel active">
+      <p style="font-size:12px;color:var(--gray);margin-bottom:12px">Sofia speaks to Maya and the engineering team privately — before any external communication.</p>
+      <div class="script-block green"><div class="script-label">Opening — acknowledge them first</div><div class="script-text">"I hear you, and you are right."</div></div>
+      <div class="script-block green"><div class="script-label">Confirm the patch is dead</div><div class="script-text">"The patch plan is off the table. James confirmed it violates our SOC 2 certification and I am not willing to compromise your integrity or ours."</div></div>
+      <div class="script-block green"><div class="script-label">Ask for their commitment</div><div class="script-text">"We are doing the full retrain, the right way, and I need your team to lead it."</div></div>
+      <div class="script-block green"><div class="script-label">Turn their integrity into the public story</div><div class="script-text">"Your refusal to cut corners is now part of how we tell this story publicly. I want you to know I am proud of this team."</div></div>
+      <div class="bar bar-green">✅ After this conversation: ask Maya to make #engineering a private channel. Frame it as protecting the team during the crisis — not punishment.</div>
+    </div>
+
+    <div id="s-okonkwo" class="sub-panel">
+      <p style="font-size:12px;color:var(--gray);margin-bottom:12px">Sofia calls Dr. Okonkwo personally — tonight, before the board call. This is the most important call Sofia makes in this entire crisis.</p>
+      <div class="script-block amber"><div class="script-label">Open with respect</div><div class="script-text">"Amara, I am calling you personally because you are the most important person at NEXUS right now, and I need you to hear that directly from me."</div></div>
+      <div class="script-block amber"><div class="script-label">Acknowledge her contribution</div><div class="script-text">"You identified the root cause. You refused to compromise your technical integrity. Everything we are doing to fix this correctly is because of your leadership."</div></div>
+      <div class="script-block amber"><div class="script-label">Ask for her commitment</div><div class="script-text">"I need you to lead this retrain through to completion. I am prepared to discuss whatever it takes — title, compensation, recognition — to make sure you know how valued you are here."</div></div>
+      <div class="script-block amber"><div class="script-label">Be honest about the stakes</div><div class="script-text">"Without your leadership on this retrain, I cannot make the promises I need to make to our customers, our board, and our investors tomorrow morning. That is how much I am counting on you."</div></div>
+      <div class="bar bar-amber">⚠️ Do NOT mention that Sofia knows about the Vantage AI interview. Let Dr. Okonkwo make her own choice. Pressure will backfire. Trust and recognition will work.</div>
+    </div>
+
+    <div id="s-board" class="sub-panel">
+      <p style="font-size:12px;color:var(--gray);margin-bottom:12px">Sofia's opening statement to Michael at the 8 AM board call — confident, structured, no panic.</p>
+      <div class="script-block red"><div class="script-label">Open with ownership</div><div class="script-text">"Michael, before anything else — I should have called you directly the moment we understood the full scope. I did not, and I owe you an apology for that."</div></div>
+      <div class="script-block"><div class="script-label">Answer Q1 — Scope</div><div class="script-text">"67% of our enterprise customers are affected by model drift traced to a vendor data contamination from 6 months ago. Customer financial impact is estimated at $40–60M since September. I have the full technical breakdown ready."</div></div>
+      <div class="script-block"><div class="script-label">Answer Q2 — Plan</div><div class="script-text">"We have a complete crisis navigation plan. Guardrail deployed. 3-week retrain initiated by Dr. Okonkwo. All affected customers notified directly. Emma from TechCrunch has our controlled response. Volvo is briefed. We are publishing proactively before Wednesday's competitor attack."</div></div>
+      <div class="script-block"><div class="script-label">Answer Q3 — Why press first</div><div class="script-text">"You deserved to hear this before the press. I was focused on having a plan before communicating — but I should have brought you in earlier. What I can promise you now is that you will never be the last to know again."</div></div>
+      <div class="script-block"><div class="script-label">Close with confidence</div><div class="script-text">"I am asking for your confidence not because the crisis is over — it is not. I am asking because we have identified every threat, made every difficult decision correctly, and have a plan that gives us an 80% probability of controlled recovery. I would like to walk you through it now."</div></div>
+      <div class="bar bar-blue">💡 After the script — open this dashboard on screen and walk Michael through each tab. Let the plan speak for itself.</div>
+    </div>
+
+    <div id="s-volvo" class="sub-panel">
+      <p style="font-size:12px;color:var(--gray);margin-bottom:12px">Sofia calls Per Andersson at Volvo — after the board call, before TechCrunch publishes Wednesday.</p>
+      <div class="script-block"><div class="script-label">Sentence 1 — be first, be direct</div><div class="script-text">"Per, I am calling you personally because I want you to hear everything from me directly — before you read it anywhere else."</div></div>
+      <div class="script-block"><div class="script-label">Sentence 2 — confirm honestly</div><div class="script-text">"We identified an issue in our training data pipeline — your team found it in dev environment testing and they were right. We have deployed a stabilising guardrail and initiated a full model retrain."</div></div>
+      <div class="script-block"><div class="script-label">Sentence 3 — warn about press coverage</div><div class="script-text">"There may be press coverage of this issue this week. You will not be surprised by it because I am telling you everything right now, and we will support you fully through Thursday's board meeting."</div></div>
+      <div class="script-block"><div class="script-label">Sentence 4 — commit to partnership</div><div class="script-text">"We are allocating a dedicated engineering pod exclusively to your account until the full retrain is complete — because how we handle this moment matters more to us than anything else right now."</div></div>
+      <div class="bar bar-blue">ℹ️ Sentence 3 is critical — Sofia proactively warns Volvo that TechCrunch is publishing. They are never blindsided reading it before hearing from Sofia.</div>
+    </div>
+  </div>
+
+  <!-- ══ EMMA REPLY ══ -->
+  <div id="panel-emma" class="panel">
+    <p style="font-size:12px;color:var(--gray);margin-bottom:12px">Sofia's exact email to Emma — sent before Tuesday 6 PM deadline. <span style="color:#90caf9">Blue highlights</span> = key phrases to defend to the jury.</p>
+
+    <div class="email-wrap">
+      <div class="email-meta">
+        <div><span>To:</span> Emma — TechCrunch</div>
+        <div><span>From:</span> Sofia Bergström, CEO — NEXUS AI</div>
+        <div><span>Subject:</span> Re: AI Infrastructure Reliability — NEXUS AI Statement</div>
+      </div>
+      Hi Emma,<br><br>
+      Thank you for reaching out and for offering us the opportunity to respond.<br><br>
+      I want to be direct with you: <span class="hl">we identified an issue in one of our training data pipelines that has affected prediction stability for a subset of our enterprise customers.</span> We found this through our own internal monitoring, and we have already taken action.<br><br>
+      Here is what I can confirm:<br><br>
+      <span class="hl">We identified the root cause — a data quality issue originating from a third-party vendor integration.</span> Our engineering team — who refused to take any shortcut — has deployed an interim stabilising measure and initiated a full model retraining cycle. We are not taking shortcuts. We are doing this the right way.<br><br>
+      <span class="hl">We have proactively notified all affected customers directly and personally. They heard this from us first</span> — not from a press release or a news article.<br><br>
+      We are not going to confirm specific percentages or financial figures in a press statement, because those numbers are part of an ongoing technical investigation and quoting them out of context would not serve your readers accurately.<br><br>
+      Regarding your question about a customer presentation — I will not comment on specific customer relationships or schedules. What I will say is that we communicate with our customers with complete transparency, and that has not changed.<br><br>
+      <span class="hl">What I would ask you to consider, Emma, is this: a company that finds a problem, fixes it the right way, and tells its customers directly before telling the press — that is a story about integrity, not failure.</span><br><br>
+      I am happy to arrange a brief call before your Tuesday 6 PM deadline if you would like to speak directly.<br><br>
+      Best regards,<br>
+      <strong>Sofia Bergström</strong><br>
+      CEO, NEXUS AI
+    </div>
+
+    <p style="font-family:var(--font-mono);font-size:9px;color:var(--gray);letter-spacing:.6px;text-transform:uppercase;margin-bottom:8px">Why each part is worded this way</p>
+    <div class="why-row"><div class="why-label">Why "subset" and not 67%</div><div class="why-text">"67% affected" becomes the headline instantly and destroys investor and customer confidence. "Subset" acknowledges the issue honestly without handing Emma the exact number she needs.</div></div>
+    <div class="why-row"><div class="why-label">Why mention engineers refused shortcuts</div><div class="why-text">Reframes from "NEXUS is broken" to "NEXUS engineers stood up for integrity." Emma may actually lead with this — it is a far better story for her too.</div></div>
+    <div class="why-row"><div class="why-label">Why not confirm Volvo</div><div class="why-text">If Emma writes "NEXUS confirmed Volvo" — Volvo reads it before Sofia calls. Unrecoverable. Never confirm specific customer names to press under any circumstances.</div></div>
+    <div class="why-row"><div class="why-label">Why offer a call</div><div class="why-text">A CEO who offers to speak directly signals confidence and control. It gives Sofia a chance to further shape the narrative. Emma is more likely to use the integrity angle if she speaks to Sofia personally.</div></div>
+    <div class="why-row"><div class="why-label">Why the closing reframe</div><div class="why-text">"A story about integrity, not failure" is the exact headline you want Emma to use. Give her a better story than what the competitors are pitching her.</div></div>
+  </div>
+
+</div><!-- /wrap -->
+
+<script>
+const details = {
+  'ceo-0':{t:'CEO — Hour 0–6 (most urgent)',i:['Call Dr. Okonkwo personally tonight — most important call in the crisis','Secure her commitment to lead the retrain before 8 AM board call','Review and approve Comms draft of Emma reply','Prepare board presentation using this dashboard','Brief CTO: pull VP Sales access logs quietly — do not confront yet']},
+  'ceo-1':{t:'CEO — Hour 6–18',i:['Board call 8 AM with Michael — use exact 5-part script','Answer all 3 questions: scope, plan, why press first','Walk Michael through complete dashboard tab by tab','Send Emma reply before Tuesday 6 PM deadline','Confirm Dr. Okonkwo commitment secured']},
+  'ceo-2':{t:'CEO — Hour 18–36',i:['Call Per Andersson at Volvo after board call','Use updated 4-sentence script with press coverage warning','Schedule Volvo technical deep-dive with James and Dr. Okonkwo','Approve AI Reliability Initiative blog post for publication']},
+  'ceo-3':{t:'CEO — Hour 36–48',i:['Support Volvo board presentation Thursday 9 AM','Monitor TechCrunch article when published — assess framing','Activate counter-narrative when competitor PR drops Wednesday','Send personal written note to top 10 enterprise customers']},
+  'cto-0':{t:'CTO — Hour 0–6',i:['Address Maya privately — confirm Option B is legally dead','Quietly access VP Sales logs for customer impact dashboard — do not alert him','Document all unusual access patterns and file downloads','Ask Maya to make #engineering private — frame as protecting the team']},
+  'cto-1':{t:'CTO — Hour 6–18',i:['Make all crisis Slack channels private','Deploy guardrail patch with audit logging fully active — no SOC 2 risk','Brief team on Volvo technical deep-dive agenda and key messages','Prepare root cause slides: contamination source, scope, fix plan']},
+  'cto-2':{t:'CTO — Hour 18–36',i:['Lead Volvo technical deep-dive with Dr. Okonkwo','Present honestly: root cause, guardrail status, retrain timeline','Give Volvo board-ready summary for Thursday presentation','Review AI Reliability blog post for technical accuracy']},
+  'cto-3':{t:'CTO — Hour 36–48',i:['Launch full retrain pipeline with Dr. Okonkwo','Confirm Week 1 milestone date in writing','Daily stability metrics to CEO','Technical review of AI Reliability public blog']},
+  'res-0':{t:'Head of Research — Hour 0–6',i:['Retention meeting with Sofia — commit to leading the retrain','Freeze all new model deployments immediately','Confirm 67% scope and 31% error rate documentation in writing','Scope clean training data set for full retrain']},
+  'res-1':{t:'Head of Research — Hour 6–18',i:['Prepare technical brief for Volvo deep-dive meeting','Define retrain plan with Week 1, 2, 3 milestones','Establish data quality governance to prevent recurrence','Brief Lars on technical facts for customer disclosure calls']},
+  'res-2':{t:'Head of Research — Hour 18–36',i:['Present in Volvo technical deep-dive alongside CTO','Answer board-level technical questions with full transparency','Provide written summary Volvo can use Thursday','Confirm no additional contamination sources found']},
+  'res-3':{t:'Head of Research — Hour 36–48',i:['Begin retrain pipeline setup with engineering team','Commit to Week 1 milestone date publicly','Technical section of AI Reliability blog prepared','New vendor data vetting policy documented for board']},
+  'cs-0':{t:'Customer Success — Hour 0–6',i:['Map all 67% affected enterprise customers by financial impact','Volvo Priority 1 — Per already emailed Sofia directly','Prepare NDA disclosure scripts for top 10 accounts','Every customer must hear from NEXUS before Wednesday AM']},
+  'cs-1':{t:'Customer Success — Hour 6–18',i:['NDA disclosure calls to top 10 BEFORE Wednesday AM','Acknowledge losses honestly — do not downplay the $40-60M figure','Give guardrail now + 3-week retrain + 1-week validation timeline','Escalate any cancellation threats to CEO immediately']},
+  'cs-2':{t:'Customer Success — Hour 18–36',i:['Prepare Volvo board presentation support materials','Coordinate dedicated engineering pod for Volvo through Thursday','Draft SLA credit or compensation proposal for hardest-hit customers','Survey top 10 on current confidence level']},
+  'cs-3':{t:'Customer Success — Hour 36–48',i:['Written update to ALL 67% affected customers before blog publishes','Confirm Volvo board support fully prepared for Thursday 9 AM','Customer sentiment report to CEO','30-day churn risk forecast prepared']},
+  'com-0':{t:'Comms — Hour 0–6',i:['Make #engineering and all crisis channels private — VP Sales is the leak','Brief all 190 staff: zero external communication, one spokesperson only','Draft Sofia email reply to Emma for CEO approval','Prepare holding statement for any other press inquiries in next 6 hours']},
+  'com-1':{t:'Comms — Hour 6–18',i:['Send approved Emma response BEFORE Tuesday 6 PM deadline','Monitor for Emma acknowledgement or follow-up questions','Build counter-narrative: engineering integrity angle is the story','Prepare CEO for potential TechCrunch follow-up call']},
+  'com-2':{t:'Comms — Hour 18–36',i:['Activate counter-narrative before Wednesday attack lands','Finalise AI Reliability Initiative blog post for CEO approval','Brief all team leads on approved messaging only','Monitor social and analyst channels for early attack signals']},
+  'com-3':{t:'Comms — Hour 36–48',i:['Publish AI Reliability Initiative BEFORE Wednesday AM','Monitor TechCrunch article live when published','Activate competitor PR counter-narrative simultaneously','Track media coverage and analyst reaction in real time']},
+  'hr-0':{t:'Legal / HR — Hour 0–6 (confidential)',i:['Pull VP Sales access logs for customer impact dashboard immediately','Do NOT confront or alert VP Sales — preserve all evidence','Document all unusual access timestamps and file downloads with dates','Cross-reference access dates with known leak dates to TechCrunch and competitors']},
+  'hr-1':{t:'Legal / HR — Hour 6–18',i:['Verify anonymous tip against access log evidence thoroughly','Consult legal counsel on next steps — confidentially','Prepare evidence file for board briefing at 8 AM','Assess if VP Sales shared any protected customer data — check legal liability']},
+  'hr-2':{t:'Legal / HR — Hour 18–36',i:['Brief Michael confidentially on leak finding during board call','Present verified evidence only — not anonymous tip alone','Recommend next steps: suspension, termination, legal action','Ensure VP Sales has no access to further sensitive systems immediately']},
+  'hr-3':{t:'Legal / HR — Hour 36–48',i:['Execute approved action on VP Sales based on board guidance','Revoke all system access immediately upon action','Notify affected employees and stakeholders appropriately','Document everything for potential legal proceedings']},
+  'ir-0':{t:'Investor Relations — Hour 0–6',i:['Prepare complete board presentation with this dashboard','Anticipate Michael hardest questions — prepare exact answers','Brief Sofia on board call protocol, tone and sequence','Do NOT contact Michael before Sofia is ready — he is already angry']},
+  'ir-1':{t:'Investor Relations — Board call 8 AM',i:['Sofia presents complete 5-part crisis script to Michael','Answer 3 questions: scope, plan, why press first — in that exact order','Walk through dashboard tab by tab after the script','Reveal leak finding confidentially at the end of the call']},
+  'ir-2':{t:'Investor Relations — Hour 18–36',i:['Send Michael written follow-up after board call','Share Emma response text and Volvo call status update','Commit to daily updates until crisis fully resolved','Present 30-day post-crisis rebuild plan outline']},
+  'ir-3':{t:'Investor Relations — Hour 36–48',i:['Update Michael after TechCrunch publishes — share actual article text','Volvo relationship status and Thursday board meeting outcome','Early customer sentiment recovery data from Lars','Confirm AI Reliability blog published and performing well']}
+};
+
+function showTab(id, btn) {
+  document.querySelectorAll('.panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.tab').forEach(b => b.classList.remove('active'));
+  document.getElementById('panel-' + id).classList.add('active');
+  btn.classList.add('active');
+  const d = document.getElementById('detail-box');
+  if (d) d.classList.remove('show');
+}
+
+function showSub(id, btn) {
+  document.querySelectorAll('.sub-panel').forEach(p => p.classList.remove('active'));
+  document.querySelectorAll('.sub-tab').forEach(b => b.classList.remove('active'));
+  document.getElementById(id).classList.add('active');
+  btn.classList.add('active');
+}
+
+function showDetail(key) {
+  const d = details[key];
+  if (!d) return;
+  const box = document.getElementById('detail-box');
+  document.getElementById('detail-title').textContent = d.t;
+  document.getElementById('detail-list').innerHTML = d.i.map(i => '<li>' + i + '</li>').join('');
+  box.classList.add('show');
+  box.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+}
+</script>
+</body>
+</html>
